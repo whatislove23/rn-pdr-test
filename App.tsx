@@ -1,131 +1,119 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { APP_ROUTES } from './src/constants';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+import { NavBar } from './src/components/NavBar';
+import { useAuth } from './src/api/hooks/useCheckAuth';
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+import { Test } from './src/screens/Test';
+import StartTest from './src/screens/Test';
+import AuthScreen from './src/screens/Auth';
+import HomeScreen from './src/screens/Home';
+import Results from './src/screens/Results';
+import Profile from './src/screens/Profile';
+import RulesScreen from './src/screens/Rules';
+import Rating from './src/screens/Rating';
+
+const Tab = createBottomTabNavigator({
+  screens: {
+    Home: HomeScreen,
+    Rules: RulesScreen,
+  },
+});
+const ProfileStack = createStackNavigator();
+const Stack = createStackNavigator();
+
+function TestStack() {
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+    <Stack.Navigator>
+      <Stack.Screen
+        name={APP_ROUTES.TEST_START}
+        component={StartTest}
+        options={{
+          headerLeft: () => null,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={APP_ROUTES.TEST}
+        component={Test}
+        options={{
+          headerLeft: () => null,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={APP_ROUTES.RESULTS}
+        component={Results}
+        options={{
+          headerLeft: () => null,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function ProfileStackScreen() {
+  return (
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen
+        name={APP_ROUTES.SIGN_IN}
+        component={Profile}
+        options={{
+          headerLeft: () => null,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <ProfileStack.Screen
+        name={APP_ROUTES.RATING}
+        component={Rating}
+        options={{
+          headerLeft: () => null,
+          headerShown: false,
+          gestureEnabled: true,
+        }}
+      />
+    </ProfileStack.Navigator>
   );
 }
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const { user } = useAuth();
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
+  const SettingsPage = user ? ProfileStackScreen : AuthScreen;
 
   return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </View>
+    <NavigationContainer>
+      <Tab.Navigator
+        initialRouteName={APP_ROUTES.HOME}
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: 'black', // Ensure a solid background
+            borderTopColor: 'black', // Match the navbar color
+            borderTopWidth: 1, // Optional: Adjust thickness
+            elevation: 0, // Remove shadow on Android
+            shadowOpacity: 0, // Remove shadow on iOS
+          },
+        }}
+        tabBar={(props) => <NavBar {...props} />}
+      >
+        <Tab.Screen name={APP_ROUTES.HOME} component={HomeScreen} />
+        <Tab.Screen name={APP_ROUTES.RULES} component={RulesScreen} />
+        <Tab.Screen name={APP_ROUTES.TEST_START} component={TestStack} />
+        <Tab.Screen name={APP_ROUTES.SIGN_IN} component={SettingsPage} />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
